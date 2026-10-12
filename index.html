@@ -1,669 +1,428 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>役物材料 計算</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- React & ReactDOM -->
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <!-- Babel for JSX -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap');
-        body { font-family: 'Noto Sans JP', sans-serif; -webkit-tap-highlight-color: transparent; background-color: #000; }
-        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-        input[type=number] { -moz-appearance: textfield; }
-        
-        /* 基本のプレースホルダー（グレー #71717a） */
-        input::placeholder { 
-            font-size: 14px !important; 
-            font-weight: 400; 
-            color: #71717a !important;
-            opacity: 1;
-        }
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><meta name="theme-color" content="#09090b"><meta name="apple-mobile-web-app-title" content="角度"><title>角度</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#09090b;color:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif;-webkit-tap-highlight-color:transparent}main{max-width:460px;margin:auto;padding:calc(12px + env(safe-area-inset-top)) 12px calc(20px + env(safe-area-inset-bottom))}h1{font-size:20px;margin:2px 0 14px;text-align:center}button,input{font:inherit}button{touch-action:manipulation;cursor:pointer}button:focus-visible{outline:3px solid #fb923c;outline-offset:2px}.panel{background:#18181b;border:2px solid #71717a;border-radius:16px;overflow:hidden}.twocol{display:grid;grid-template-columns:1fr 1fr}.field{position:relative;min-width:0;height:53px;border-bottom:1px solid #3f3f46;display:flex;align-items:center}.twocol .field:first-child{border-right:1px solid #3f3f46}.field.active,.result.active{box-shadow:inset 0 0 0 2px #f97316;background:#27272a}input{min-width:0;width:100%;height:100%;border:0;background:none;color:white;outline:0;text-align:center;font-size:23px;font-weight:700;padding:0 12px;font-variant-numeric:tabular-nums}input::placeholder{font-size:14px;color:#c0c0c0;font-weight:400}.label{font-size:14px;color:#c0c0c0;white-space:nowrap;padding-left:12px;font-weight:700}.unit{font-size:14px;color:#a1a1aa;padding-right:10px}.horizontal input{font-size:26px;padding:0 4px}.keypad{border-top:8px solid #09090b;display:grid;grid-template-columns:1fr;background:#3f3f46;gap:1px}.key-row{display:grid;gap:1px;grid-template-columns:repeat(6,minmax(0,1fr))}.key-row.digits{grid-template-columns:repeat(9,minmax(0,1fr))}.keypad button{padding:0;min-width:0;border:0;background:#18181b;color:white;font-size:23px;font-weight:700;min-height:51px}.keypad button:active{background:#52525b}.keypad .clear{background:#3f3f46}.keypad .enter{background:linear-gradient(#e5e5ea,#c7c7cc);color:#27272a;font-size:30px}.results{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}.result{min-width:0;background:#18181b;border:2px solid;border-radius:16px;padding:8px 10px 4px}.result label{display:block;font-size:14px;font-weight:700;color:#d4d4d8}.result>div{display:flex;align-items:center;height:38px}.result input{text-align:left;font-size:28px;padding:0;color:inherit}.result .unit{padding:0}.height{border-color:#22c55e;color:#22c55e}.hyp{border-color:#3b82f6;color:#60a5fa}.preview{background:#18181b;border:1px solid #3f3f46;border-radius:16px;padding:12px;margin-top:14px}.preview-head{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:14px;font-weight:700}.toggle{border:1px solid #52525b;border-radius:12px;background:#18181b;color:#d4d4d8;padding:4px;min-width:80px;flex-shrink:0}.toggle:active{background:#3f3f46}.toggle svg{display:block;width:70px;height:44px;margin:auto}.toggle span{display:block;font-size:14px;padding:2px 0}.drawing{margin-top:10px;background:#101012;border:1px solid #27272a;border-radius:12px}.drawing svg{display:block;width:100%;height:auto}.note{font-size:14px;color:#a1a1aa;margin:10px 0 0;line-height:1.6}.error{color:#fca5a5;font-size:14px;line-height:1.5;margin:8px 2px 0}.error:empty{display:none}
+.angles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;flex:1;min-width:0}.angle{min-width:0;display:flex;flex-direction:column;align-items:center;gap:6px}.angle label{font-size:14px;color:#d4d4d8;font-weight:700;white-space:nowrap}.angle output{font-size:21px;font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}@media(max-width:359px){.angle output{font-size:18px}.angles{gap:4px}}
 
-        /* ラベル代わりのシルバープレースホルダー（#c0c0c0） */
-        .placeholder-silver::placeholder {
-            color: #c0c0c0 !important;
-        }
-        
-        .btn-3d { transition: all 0.1s; position: relative; top: 0; }
-        .btn-3d:active { transform: translateY(2px); }
-        
-        .btn-3d-orange-ios {
-            background: linear-gradient(180deg, #ff9500 0%, #e67600 100%);
-            border: 1px solid #b35c00;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.2);
-            transition: all 0.05s ease;
-            position: relative;
-            z-index: 1;
-        }
-        .btn-3d-orange-ios:active {
-            transform: translateY(2px);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2), inset 0 1px 4px rgba(0,0,0,0.3);
-        }
+.drawing{cursor:zoom-in}.drawing:focus-visible{outline:3px solid #fb923c;outline-offset:2px}
+#fullView{position:fixed;inset:0;width:100%;max-width:none;height:100%;height:100dvh;max-height:none;margin:0;padding:0;border:0;background:#101012;color:#f4f4f5;overscroll-behavior:contain}
+#fullView::backdrop{background:#101012}.full-layout{height:100%;display:flex;flex-direction:column;padding:calc(10px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom)) calc(12px + env(safe-area-inset-left))}.full-bar{display:flex;justify-content:space-between;gap:12px;flex-shrink:0}.full-bar button{min-height:44px;min-width:88px;padding:10px 16px;border:1px solid #71717a;border-radius:12px;background:#27272a;color:white;font-size:16px;font-weight:700}.full-canvas{flex:1;min-height:0;display:flex;align-items:center;justify-content:center}.full-canvas svg{width:100%;height:100%;display:block}.full-unit{text-align:right;color:#a1a1aa;font-size:14px;margin:0}
 
-        .btn-3d-silver-ios {
-            background: linear-gradient(180deg, #e5e5ea 0%, #c7c7cc 100%);
-            border: 1px solid #8e8e93;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.5);
-            transition: all 0.05s ease;
-            position: relative;
-            z-index: 1;
-        }
-        .btn-3d-silver-ios:active {
-            transform: translateY(2px);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2), inset 0 1px 4px rgba(0,0,0,0.3);
-        }
+/* iPhone: usable width, safe areas and stable text sizing */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}body{min-height:100vh;min-height:100svh}button,input{ -webkit-appearance:none;appearance:none;border-radius:0}button{user-select:none;-webkit-user-select:none}
+main{padding:calc(8px + env(safe-area-inset-top)) max(6px,env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom)) max(6px,env(safe-area-inset-left))}
+h1{margin:0 0 10px}.field{height:52px}.horizontal input{flex:1;width:0}.label,.unit{flex-shrink:0}.keypad button{min-height:56px}.key-row.digits button{font-size:22px}.results{margin-top:10px}.preview{margin-top:10px;padding:10px}.note{margin-top:8px}.result input{flex:1;width:0;min-width:0}.result .unit{padding-left:4px}.toggle{border-radius:12px}.full-bar button{border-radius:12px;min-height:48px}.full-layout{overflow:hidden}.full-unit{flex-shrink:0}
+@media(max-width:359px){.key-row.digits button{font-size:20px}.label{padding-left:8px}.preview{padding:8px}.angle output{font-size:19px}.note{font-size:14px}}
+@media(orientation:landscape) and (max-height:500px){.full-layout{padding-top:max(6px,env(safe-area-inset-top));padding-bottom:max(6px,env(safe-area-inset-bottom))}.full-bar button{min-height:44px;padding:6px 12px}.full-unit{font-size:14px}}
 
-        .btn-3d-zinc { background: #3f3f46; border-bottom: 4px solid #18181b; }
-        .btn-3d-tab-active { background: #52525b; border-bottom: 3px solid #18181b; color: #f97316; }
-        
-        .animate-fade-in { animation: fadeIn 0.15s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-        
-        * { -webkit-user-select: none; }
-        input { -webkit-user-select: text; }
+/* 隙間のない、控えめな立体テンキー */
+.keypad,.key-row{gap:0}
+.keypad button,.keypad .enter{
+ background:linear-gradient(180deg,#303034 0%,#222225 48%,#18181b 100%);
+ color:#fff;border:0;border-radius:0;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.13),inset 1px 0 0 rgba(255,255,255,.06),inset -1px 0 0 rgba(0,0,0,.4),inset 0 -3px 0 rgba(0,0,0,.45);
+}
+.keypad .clear{background:linear-gradient(180deg,#505056 0%,#414147 48%,#343439 100%)}
+.keypad button:active,.keypad .enter:active,.keypad .clear:active{
+ background:linear-gradient(180deg,#151518 0%,#29292d 100%);
+ box-shadow:inset 0 2px 5px rgba(0,0,0,.7),inset 0 -1px 0 rgba(255,255,255,.08);
+}
+.full-layout{padding-left:max(4px,env(safe-area-inset-left));padding-right:max(4px,env(safe-area-inset-right))}.full-bar{padding:0 8px}.full-unit{padding-right:8px}
 
-        .label-ios {
-            position: absolute;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 13px;
-            font-weight: bold;
-            color: #c0c0c0;
-            pointer-events: none;
-            z-index: 10;
-            white-space: nowrap;
-        }
-    </style>
-</head>
-<body class="bg-zinc-950 text-zinc-100 min-h-screen">
-    <div id="root"></div>
+.app-heading{position:relative;display:flex;align-items:flex-end;justify-content:space-between;min-height:26px;margin:0 0 10px;gap:12px}
+.app-heading h1{font-size:18px;line-height:26px;margin:0;text-align:left}
+.app-heading .brand{position:static;font-size:14px;line-height:20px;font-weight:400;color:#9ca3af;white-space:nowrap;align-self:flex-end}
 
-    <script type="text/babel">
-        const { useState, useEffect, useRef, useMemo } = React;
+#slopePlaceholder{position:static;transform:none;order:-1;width:64px;height:46px;flex:0 0 64px;margin-left:8px;color:#d4d4d8;pointer-events:none}
+#angleFieldLabel{font-size:14px;font-weight:700;color:#c0c0c0;flex-shrink:0;margin-left:10px;white-space:nowrap}
+#slopePlaceholder[hidden],#angleFieldLabel[hidden]{display:none}
+.twocol .field input{flex:1;width:0;padding-left:6px;padding-right:6px}
 
-        const Icon = ({ name, size = 24, className = "" }) => {
-            const paths = {
-                save: <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2zM17 21v-8H7v8M7 3v5h8" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />,
-                trash: <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />,
-                x: <path d="M18 6 6 18M6 6l12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />,
-                chevron: <path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />,
-                enter: <path d="M9 10l-5 5 5 5M4 15h11a5 5 0 0 0 5-5V7" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-            };
-            return (
-                <svg width={size} height={size} viewBox="0 0 24 24" className={className} xmlns="http://www.w3.org/2000/svg">
-                    {paths[name] || null}
-                </svg>
-            );
-        };
 
-        function App() {
-            const [activeTab, setActiveTab] = useState('material');
-            const [activeField, setActiveField] = useState('totalDim');
-            const [isNewEntry, setIsNewEntry] = useState(true);
-            const [isPendingClear, setIsPendingClear] = useState(false);
+.horizontal #c{height:100%;padding-top:0;padding-bottom:0;line-height:normal}
+.horizontal #c:placeholder-shown{font-size:16px!important}
+.horizontal #c::placeholder{color:#71717a;opacity:1;line-height:normal}
 
-            const [currentProductName, setCurrentProductName] = useState('');
-            const [stdLength, setStdLength] = useState('');
-            const [overlap, setOverlap] = useState('');
-            const [totalDim, setTotalDim] = useState('');
-            const [addInput, setAddInput] = useState('');
+html,body,main,#fullView{touch-action:pan-x pan-y}
 
-            const [history, setHistory] = useState(() => {
-                try {
-                    const saved = localStorage.getItem('trim_calc_history_v15');
-                    return saved ? JSON.parse(saved) : [];
-                } catch(e) { return []; }
-            });
-            const [savedTallies, setSavedTallies] = useState(() => {
-                try {
-                    const saved = localStorage.getItem('trim_calc_tallies_v15');
-                    return saved ? JSON.parse(saved) : [];
-                } catch(e) { return []; }
-            });
+.full-bar{order:3;padding-top:10px;gap:12px}.full-canvas{order:1}.full-unit{order:2}.full-bar button{flex:1}
+#numberEditor{width:min(360px,calc(100% - 20px));max-height:calc(100dvh - 20px);overflow:auto;border:1px solid #71717a;border-radius:16px;padding:14px;background:#18181b;color:#fff}
+#editorTitle:focus{outline:none}.result[role="button"]{cursor:pointer}.result[role="button"]:focus-visible{outline:2px solid #fb923c;outline-offset:2px}
+#numberEditor::backdrop{background:rgba(0,0,0,.65)}#numberEditor h2{font-size:18px;margin:0 0 10px}#editorValue{display:block;background:#09090b;min-height:48px;border-radius:8px;padding:8px;text-align:right;font-size:26px;overflow-wrap:anywhere}
+.editor-keys{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;margin-top:10px}.editor-keys button,.editor-actions button{min-height:44px;border:1px solid #52525b;background:#303034;color:#fff;font-size:20px;border-radius:6px}.editor-actions{display:flex;gap:8px;margin-top:10px}.editor-actions button{flex:1;font-size:16px}#editorApply{background:#b85c00}.editor-note{font-size:14px;color:#a1a1aa;margin:8px 0}#editorError{font-size:14px;color:#fca5a5;margin:8px 0}
+#fullDiagram [data-edit]{cursor:pointer}#fullDiagram [data-edit]:focus-visible{outline:2px solid #fb923c}
 
-            const [y, setY] = useState('');
-            const [x, setX] = useState('');
-            const [c, setC] = useState('');
-            const [a, setA] = useState('');
-            const [b, setB] = useState('');
+.angles .angle[role="button"]{cursor:pointer;min-height:48px;touch-action:manipulation;border-radius:8px}.angles .angle[role="button"]:focus-visible{outline:2px solid #fb923c;outline-offset:2px}.angles .angle[role="button"]:active{background:#27272a}
+#editorMode{color:#fb923c}
+/* テンキー：文字色をグレーにし、記号キーは少し細くする。固定・⏎はACと同色 */
+.keypad button{color:#c0c0c0}
+.keypad button.key-label{font-weight:600}
+.keypad #fixedModeKey,.keypad .enter{background:linear-gradient(180deg,#505056 0%,#414147 48%,#343439 100%);color:#c0c0c0}
+/* 数字キーを00キーと同じ背景に固定 */
+.key-row.digits button{background:linear-gradient(180deg,#303034 0%,#222225 48%,#18181b 100%)!important}
 
-            const addInputRef = useRef(null);
-            const [isClearModalOpen, setIsClearModalOpen] = useState(false);
-            const [openDropdown, setOpenDropdown] = useState(null);
+/* iPad：計算入力と作図を同時表示 */
+@media (min-width:700px){
+ main{max-width:1200px;display:grid;grid-template-columns:minmax(0,0.9fr) minmax(0,1.1fr);column-gap:18px;align-items:start}
+ .app-heading{grid-column:1 / -1}
+ .panel{grid-column:1;grid-row:2}
+ .results{grid-column:1;grid-row:3}
+ #error{grid-column:1;grid-row:4}
+ .right-column{grid-column:2;grid-row:2 / 5;min-width:0}.right-column .preview{margin-top:0;padding:16px}
+ .drawing{margin-top:20px}
+ .keypad{grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(4,64px);gap:0}
+ .keypad .key-row{display:contents}
+ .keypad button{min-height:64px;font-size:26px}
+ .keypad button[data-key="7"]{grid-area:1 / 1}
+ .keypad button[data-key="8"]{grid-area:1 / 2}
+ .keypad button[data-key="9"]{grid-area:1 / 3}
+ .keypad button[data-key="固定"]{grid-area:1 / 4}
+ .keypad button[data-key="4"]{grid-area:2 / 1}
+ .keypad button[data-key="5"]{grid-area:2 / 2}
+ .keypad button[data-key="6"]{grid-area:2 / 3}
+ .keypad button[data-key="C"]{grid-area:2 / 4}
+ .keypad button[data-key="1"]{grid-area:3 / 1}
+ .keypad button[data-key="2"]{grid-area:3 / 2}
+ .keypad button[data-key="3"]{grid-area:3 / 3}
+ .keypad button[data-key="AC"]{grid-area:3 / 4}
+ .keypad button[data-key="0"]{grid-area:4 / 1 / 5 / 3}
+ .keypad button[data-key="00"]{grid-area:4 / 3}
+ .keypad button[data-key="⏎"]{grid-area:4 / 4}
+}
 
-            useEffect(() => {
-                setIsNewEntry(true);
-            }, [activeField, activeTab]);
+.save-area{padding:10px;background:#09090b}
+#saveCalculation{width:100%;min-height:48px;border:1px solid #71717a;border-radius:10px;background:linear-gradient(#fb923c,#ea580c);color:#fff;font-size:18px;font-weight:700}
+#saveStatus{font-size:14px;color:#d4d4d8;line-height:1.5;margin:8px 0 0}#saveStatus:empty{display:none}
+.history-panel{margin-top:12px;padding:12px;background:#18181b;border:1px solid #3f3f46;border-radius:16px;min-width:0}
+.history-panel h2{font-size:17px;margin:0 0 8px}.history-note{font-size:14px;color:#a1a1aa;line-height:1.5;margin:0 0 10px}
+.history-list{display:grid;gap:8px;max-height:360px;overflow:auto;overscroll-behavior:contain}
+.history-item{width:100%;text-align:left;border:1px solid #52525b;border-radius:10px;background:#27272a;color:#f4f4f5;padding:10px;font-size:15px;line-height:1.6;white-space:pre-line;overflow-wrap:anywhere}
+.history-item.selected{border-color:#fb923c;box-shadow:inset 0 0 0 1px #fb923c}
+.history-empty{color:#a1a1aa;font-size:14px;margin:0}
 
-            const format = (val) => {
-                if (val === '' || val === undefined || val === null) return '';
-                const clean = val.toString().replace(/,/g, '');
-                const num = parseFloat(clean);
-                return isNaN(num) ? val : Math.round(num).toLocaleString();
-            };
-            const unformat = (val) => val.toString().replace(/,/g, '');
-            const toNum = (val) => parseFloat(unformat(val)) || 0;
-            
-            const handleFocus = (e) => {
-                setTimeout(() => e.target.select(), 10);
-            };
+.history-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}.history-heading h2{margin:0}
+#deleteAllHistory{min-height:44px;padding:6px 14px;border:1px solid #71717a;border-radius:8px;background:#3f3f46;color:#f4f4f5;font-size:15px}
+#deleteAllHistory:disabled{opacity:.4;cursor:default}
+.history-row{display:flex;gap:6px;align-items:stretch;min-width:0}.history-row .history-item{flex:1;min-width:0}
+.history-delete{flex:0 0 44px;border:1px solid #52525b;border-radius:10px;background:#3f3f46;color:#f4f4f5;font-size:25px;min-height:44px}
+</style><link rel="manifest" href="./manifest.json?v=20261010-1035">
+<link rel="apple-touch-icon" sizes="180x180" href="./icon-180.png?v=20261010-1035">
+<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png?v=20261010-1035">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+</head><body><main><header class="app-heading"><h1>角度</h1><span class="brand">KYOWA ROOF</span></header>
+<section class="panel" aria-label="勾配と寸法の入力"><div class="twocol"><div class="field active" data-field="y"><input id="y" aria-label="勾配（水平100に対する高さ）" placeholder="" readonly inputmode="none"><svg id="slopePlaceholder" viewBox="0 0 100 62" aria-hidden="true"></svg></div><div class="field" data-field="x"><label id="angleFieldLabel" for="x">角度</label><input id="x" aria-label="角度（度）" placeholder="" readonly inputmode="none"></div></div><div class="field horizontal" data-field="c"><label id="horizontalFieldLabel" class="label" for="c">水平寸法</label><input id="c" aria-label="水平寸法（ミリメートル）" placeholder="距離・長さ" readonly inputmode="none"><span class="unit">㎜</span></div><div class="keypad" aria-label="テンキー"></div><div class="save-area"><button type="button" id="saveCalculation">保存</button><p id="saveStatus" role="status" aria-live="polite"></p></div></section>
 
-            const executeAddition = () => {
-                const current = toNum(totalDim);
-                const add = toNum(addInput);
-                if (addInput !== '') {
-                    setTotalDim((current + add).toString());
-                    setAddInput('');
-                    setIsNewEntry(true);
-                }
-            };
+<section class="results" aria-label="計算結果・逆算入力"><div class="result height" data-field="a"><label for="a">勾配幅</label><div><input id="a" aria-label="勾配幅（ミリメートル）" placeholder="0" readonly inputmode="none"><span class="unit">㎜</span></div></div><div class="result hyp" data-field="b"><label for="b">斜辺</label><div><input id="b" aria-label="斜辺（ミリメートル）" placeholder="0" readonly inputmode="none"><span class="unit">㎜</span></div></div></section>
+<p id="error" class="error" role="status"></p>
+<div class="right-column"><section class="preview"><div class="preview-head"><div class="angles" aria-label="A・Bと斜辺の角度"><div class="angle" id="editAngleA" role="button" tabindex="0" aria-haspopup="dialog" aria-label="Aの角度を変更"><label for="angleA">A〜斜辺</label><output id="angleA">—</output></div><div class="angle" id="editAngleB" role="button" tabindex="0" aria-haspopup="dialog" aria-label="Bの角度を変更"><label for="angleB">B〜斜辺</label><output id="angleB">—</output></div></div><button type="button" id="direction" class="toggle" aria-label="下向きに切り替え" aria-pressed="false"><svg id="directionIcon" viewBox="0 0 100 62" aria-hidden="true"></svg><span id="directionLabel">上向き ⇅</span></button></div><div class="drawing" id="openDiagram" role="button" tabindex="0" aria-label="図を全画面で表示" aria-haspopup="dialog"><svg id="diagram" viewBox="0 0 400 205" role="img" aria-label="上向きの勾配図"></svg></div><p class="note">寸法は㎜単位で四捨五入して表示します。</p></section>
+<section class="history-panel" aria-label="保存履歴"><div class="history-heading"><h2>履歴</h2><button type="button" id="deleteAllHistory">全削除</button></div><p class="history-note">タップして再編集。再保存すると同じ履歴を更新します。</p><div id="historyList" class="history-list"></div></section></div>
+</main>
+<dialog id="fullView" aria-label="勾配図の全画面表示"><div class="full-layout"><div class="full-bar"><button type="button" id="fullDirection">上下切替</button><button type="button" id="closeDiagram" autofocus>閉じる ×</button></div><div class="full-canvas"><svg id="fullDiagram" viewBox="0 0 440 340" role="img" aria-label="角度付き勾配図"></svg></div><p class="full-unit">数字をタップして変更　寸法：㎜</p></div></dialog>
+<dialog id="numberEditor" aria-labelledby="editorTitle"><h2 id="editorTitle" tabindex="-1" autofocus>数値変更</h2><output id="editorValue"></output><p id="editorMode" class="editor-note"></p><div id="editorKeys" class="editor-keys"></div><p id="editorError" role="status"></p><div class="editor-actions"><button type="button" id="editorCancel">キャンセル</button><button type="button" id="editorApply">確定</button></div></dialog>
+<script>
+'use strict';
+// Suppress multi-touch page zoom while preserving one-finger scrolling.
+for(const type of ['gesturestart','gesturechange','gestureend']){
+ document.addEventListener(type,e=>e.preventDefault(),{passive:false});
+}
+for(const type of ['touchstart','touchmove']){
+ document.addEventListener(type,e=>{if(e.touches.length>1)e.preventDefault()},{passive:false});
+}
 
-            const clearAllFields = () => {
-                setTotalDim('');
-                setAddInput('');
-                setIsNewEntry(true);
-            };
+const fields=['y','x','c','a','b'];
+let values={y:'',x:'',c:'100',a:'',b:''},active='y',fresh=true,down=true,error='',editBase=null,fixedMode='angle';
+const STORAGE_KEY='kyowa-angle:state:v1:'+new URL('./',location.href).pathname;
+function saveState(){
+ try{localStorage.setItem(STORAGE_KEY,JSON.stringify({version:1,values,active,down,error,fixedMode}))}
+ catch(e){console.warn('入力状態を端末に保存できませんでした。',e)}
+}
+function restoreState(){
+ try{
+  const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');
+  if(!saved||saved.version!==1||!saved.values||typeof saved.down!=='boolean')return;
+  const restored={};
+  for(const k of fields){
+   const v=saved.values[k];
+   if(typeof v!=='string'||v.length>100||(v!==''&&(!Number.isFinite(Number(v))||Number(v)<0)))return;
+   restored[k]=v;
+  }
+  values=restored;down=saved.down;fixedMode=saved.fixedMode==='length'?'length':'angle';active=fields.includes(saved.active)?saved.active:'y';
+  error=typeof saved.error==='string'&&saved.error.length<=160?saved.error:'';
+  fresh=true;editBase=null;
+ }catch(e){console.warn('保存された入力状態を読み込めませんでした。',e)}
+}
 
-            const materialResult = useMemo(() => {
-                const total = toNum(totalDim);
-                const std = toNum(stdLength);
-                const over = toNum(overlap);
-                const effective = std - over;
-                if (total > 0 && effective > 0) {
-                    const pieces = Math.ceil(total / effective);
-                    return { pieces, remainder: (pieces * effective) - total };
-                }
-                return { pieces: 0, remainder: 0 };
-            }, [totalDim, stdLength, overlap]);
+const el=id=>document.getElementById(id);
+const num=k=>values[k]===''?null:Number(values[k]);
+const put=(k,n)=>{values[k]=Number.isFinite(n)?String(n):''};
+const fmt=(v,d=0)=>v===''?'':Number(v).toLocaleString('ja-JP',{minimumFractionDigits:d,maximumFractionDigits:d});
+function select(k){if(active!==k){active=k;fresh=true}render()}
+function calculate(k){
+ error='';let n=num(k);
+ if(n===null){if(k==='y'||k==='x'){values.y='';values.x='';values.a='';values.b=''}else if(k==='c'){values.a='';values.b=''}else if(k==='a'){values.b=''}else if(k==='b'){values.a=''}return}
+ if(!Number.isFinite(n)||n<0||n>1e12||(k==='x'&&n>=90)||(['b','c'].includes(k)&&n===0)){
+  error=k==='x'?'角度は0以上90未満で入力してください。':(['b','c'].includes(k)&&n===0)?'水平寸法と斜辺は0より大きい値を入力してください。':'入力できる範囲を超えています。';
+  fields.forEach(f=>{if(f!==k&&f!=='c')values[f]=''});return;
+ }
+ let c=num('c'),a=num('a'),b=num('b'),r=num('y')===null?null:num('y')/100;
+ if(fixedMode==='length'&&(k==='a'||k==='b')&&(c===null||c<=0)){error='水平寸法固定：先に0より大きい水平寸法を入力してください。';return}
+ if(fixedMode==='angle'&&(k==='a'||k==='b')){
+  if(r===null){error='角度固定：先に角度または勾配を入力してください。';return}
+  if(k==='a'&&r===0){error='角度0では勾配幅から逆算できません。斜辺または水平寸法を入力してください。';return}
+  const nextC=k==='a'?n/r:n/Math.hypot(1,r);
+  if(!Number.isFinite(nextC)||nextC<=0){error='この角度では0より大きい寸法を入力してください。';return}
+  put('c',nextC);put('a',nextC*r);put('b',Math.hypot(nextC,nextC*r));return;
+ }
 
-            const saveToHistoryManually = () => {
-                if (materialResult.pieces === 0 || stdLength === '') return;
-                const newItem = {
-                    id: Date.now().toString(),
-                    total: totalDim,
-                    std: stdLength,
-                    overlap: overlap,
-                    pieces: materialResult.pieces,
-                    remainder: materialResult.remainder,
-                    createdAt: Date.now()
-                };
-                let newHistory = [newItem, ...history].slice(0, 50);
-                setHistory(newHistory);
-                localStorage.setItem('trim_calc_history_v15', JSON.stringify(newHistory));
-            };
+ if(c!==null&&c<=0){error='水平寸法は0より大きい値を入力してください。';if(k!=='a')values.a='';if(k!=='b')values.b='';return}
+ if(k==='x'||k==='y'){
+  r=k==='x'?Math.tan(n*Math.PI/180):n/100;
+  if(k==='x')put('y',r*100);else put('x',Math.atan(r)*180/Math.PI);
+  if(c!==null&&c>0){put('a',c*r);put('b',Math.hypot(c,c*r))}
+ }else if(k==='c'){
+  if(r!==null){put('a',c*r);put('b',Math.hypot(c,c*r))}
+  else if(a!==null){put('y',a/c*100);put('x',Math.atan2(a,c)*180/Math.PI);put('b',Math.hypot(c,a))}
+  else if(b!==null)solveSides(c,null,b);
+ }else if(c!==null&&c>0){solveSides(c,k==='a'?a:null,k==='b'?b:null)}
+ else if(r!==null){
+  if(k==='a'&&r===0){values.c='';values.b='';error='勾配0では勾配幅から水平寸法を求められません。水平寸法を入力してください。';return}
+  c=k==='a'?a/r:b/Math.hypot(1,r);
+  if(c>0){put('c',c);put('a',c*r);put('b',Math.hypot(c,c*r))}
+ }else if(a!==null&&b!==null){
+  if(b<=a){error='斜辺は勾配幅より大きい値にしてください。';values.c='';values.y='';values.x='';return}
+  solveSides(Math.sqrt((b-a)*(b+a)),a,b);
+ }
+}
+function solveSides(c,a,b){
+ if(a===null){if(b<c){error='斜辺は水平寸法以上の値にしてください。';values.a='';values.y='';values.x='';return}a=Math.sqrt((b-c)*(b+c))}
+ put('c',c);put('a',a);put('b',Math.hypot(c,a));put('y',a/c*100);put('x',Math.atan2(a,c)*180/Math.PI);
+}
+function key(key){
+ if(key==='固定'){fixedMode=fixedMode==='angle'?'length':'angle';fresh=true;editBase=null;render();return;}
+ if(active==='y'&&key==='.')return;
+ if(key==='AC'){values={y:'',x:'',c:'100',a:'',b:''};active='y';down=true;fixedMode='angle';error='';fresh=true;editBase=null;render();return}
+ if(key==='⏎'){active=fields[(fields.indexOf(active)+1)%fields.length];fresh=true;render();return}
+ if(key==='C'){values[active]='';calculate(active);fresh=true;render();return}
+ if(fresh||!editBase)editBase={...values};
+ let s=fresh?'':values[active];
+ if(key==='Backspace')s=s.slice(0,-1);
+ else {if(key==='.'&&s.includes('.'))return;s+=key;if(s.startsWith('.'))s='0'+s;if(s.length>12)return}
+ values={...editBase,[active]:s};fresh=false;calculate(active);values[active]=s;render();
+}
+function renderFullDiagram(){
+ const y=num('y'),valid=y!==null&&!error,base=down?130:260,sign=down?1:-1;
+ const h=valid?(y===0?0:Math.max(40,Math.min(140,y*2.9))):95,tip=base+sign*h;
+ const text=(x,y,t,color='#f4f4f5',anchor='middle',size=22,maxWidth=140)=>`<text x="${x}" y="${y}" text-anchor="${anchor}" fill="${color}" font-size="${size}" font-weight="700" stroke="#101012" stroke-width="5" stroke-linejoin="round" paint-order="stroke" ${String(t).length*size*.65>maxWidth?'textLength="'+maxWidth+'" lengthAdjust="spacingAndGlyphs"':''}>${t}</text>`;
+ const editable=(field,x,y,t,color='#f4f4f5',anchor='middle',size=22,maxWidth=140)=>{
+ const width=Math.min(maxWidth,Math.max(48,String(t).length*size*.65));
+ const left=anchor==='start'?x-5:x-width/2-5;
+ return `<g data-edit="${field}" role="button" tabindex="0" aria-label="${({c:'水平寸法',a:'勾配幅',b:'斜辺',A:'Aの角度',B:'Bの角度'})[field]}を変更"><rect x="${left}" y="${y-28}" width="${width+10}" height="44" fill="transparent"/>${text(x,y,t,color,anchor,size,maxWidth)}</g>`;
+ };
+ el('fullDiagram').innerHTML=`<path d="M70 ${base}V20 M8 ${base}H70" stroke="#0785ff" stroke-width="3" stroke-dasharray="9 9" stroke-linecap="round" fill="none"/>
+ <g dominant-baseline="middle">${text(70,52,'A')}${text(35,base,'B')}</g>
+ ${editable('A',93,59,el('angleA').textContent,'#f4f4f5','start',24,115)}
+ ${editable('B',42,base+35,el('angleB').textContent,'#f4f4f5','middle',22,78)}
+ <path d="M70 ${base}H360" stroke="#f97316" stroke-width="4" fill="none"/>
+ ${editable('c',235,base-sign*28,fmt(values.c)||'水平寸法','#fb923c')}
+ <path d="M360 ${base}V${tip}" stroke="#22c55e" stroke-width="4" fill="none"/>
+ ${editable('a',360,tip+sign*32,valid?(fmt(values.a)||'—'):'勾配幅','#4ade80','middle',22,135)}
+ <path d="M70 ${base}L360 ${tip}" stroke="#3b82f6" stroke-width="4" fill="none"/>
+ ${editable('b',215,(base+tip)/2+(down?42+70*h/290:-(22+70*h/290)),valid?(fmt(values.b)||'—'):'斜辺','#60a5fa')}`;
+ el('fullDiagram').setAttribute('aria-label',(down?'下向き':'上向き')+'の勾配図、A '+el('angleA').textContent+'、B '+el('angleB').textContent);
+ el('fullDirection').textContent=down?'下向き ⇅':'上向き ⇅';
+}
+function fitInput(input,maxSize){
+ const fieldLabel=input.id==='y'?el('slopePlaceholder'):input.id==='x'?el('angleFieldLabel'):null;
+ if(fieldLabel)fieldLabel.hidden=false;
+ const style=getComputedStyle(input),padding=parseFloat(style.paddingLeft)+parseFloat(style.paddingRight);
+ let width=input.clientWidth-padding;
+ if(width<=0)return;
+ const canvas=fitInput.canvas||(fitInput.canvas=document.createElement('canvas')),context=canvas.getContext('2d');
+ if(!context)return;
+ context.font=style.fontWeight+' '+maxSize+'px '+style.fontFamily;
+ const measured=context.measureText(input.value||'0').width;
+ if(fieldLabel&&input.value!==''&&measured>width-4){
+  fieldLabel.hidden=true;
+  width=input.clientWidth-padding;
+ }
+ input.style.fontSize=Math.max(16,Math.min(maxSize,maxSize*(width-4)/Math.max(1,measured)))+'px';
+}
+window.addEventListener('resize',()=>{for(const k of fields)fitInput(el(k),k==='a'||k==='b'?28:k==='c'?26:23)});
+function render(){
+ const modeButton=el('fixedModeKey');if(modeButton){modeButton.textContent=fixedMode==='angle'?'角':'長';modeButton.setAttribute('aria-label',(fixedMode==='angle'?'角度固定。水平寸法固定へ切り替え':'水平寸法固定。角度固定へ切り替え'));}
 
-            const handleKeypad = (key) => {
-                if (key === 'AC') {
-                    if (activeTab === 'material') {
-                        clearAllFields();
-                        setStdLength('');
-                        setOverlap('');
-                        setCurrentProductName('');
-                    } else {
-                        setY(''); setX(''); setC(''); setA(''); setB('');
-                    }
-                    setIsNewEntry(true);
-                    return;
-                }
+ el('c').style.color=fixedMode==='length'?'#fb923c':num('c')===100?'#c0c0c0':'#ffffff';
+ el('x').style.color=fixedMode==='angle'?'#fb923c':'#ffffff';
+ el('y').style.color=fixedMode==='angle'?'#fb923c':'#ffffff';
+ el('angleFieldLabel').style.color='#c0c0c0';
+ el('slopePlaceholder').style.color='#d4d4d8';
+ el('horizontalFieldLabel').style.color='#c0c0c0';
+ for(const k of fields){el(k).value=k===active&&!fresh?values[k]:fmt(values[k],k==='x'?1:0);fitInput(el(k),k==='a'||k==='b'?28:k==='c'?26:23)}
+ document.querySelectorAll('[data-field]').forEach(n=>n.classList.toggle('active',n.dataset.field===active));el('error').textContent=error;
+ el('direction').setAttribute('aria-pressed',String(down));el('direction').setAttribute('aria-label',down?'上向きに切り替え':'下向きに切り替え');el('directionLabel').textContent=down?'下向き ⇅':'上向き ⇅';
+ el('directionIcon').innerHTML=`<path d="${down?'M12 17H70V47Z':'M12 42H70V12Z'}" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><text x="40" y="${down?12:59}" text-anchor="middle" fill="currentColor" font-size="16" font-weight="bold">100</text><text x="78" y="${down?36:32}" fill="currentColor" font-size="16" font-weight="bold">y</text>`;
+ el('slopePlaceholder').innerHTML=el('directionIcon').innerHTML;
+ const y=num('y'),valid=y!==null&&!error,base=down?64:159,sign=down?1:-1,h=valid?(y===0?0:Math.max(15,Math.min(96,y))):65,tip=base+sign*h;
+ const theta=num('x'),anglesValid=valid&&theta!==null&&Number.isFinite(theta)&&theta>=0&&theta<90;
+ const angleText=n=>Number(n.toFixed(1)).toLocaleString('ja-JP',{maximumFractionDigits:1})+'°';
+ el('angleA').textContent=anglesValid?angleText(90+(down?theta:-theta)):'—';
+ el('angleB').textContent=anglesValid?angleText(180+(down?theta:-theta)):'—';
+ const label=(x,y,t,color,anchor='middle')=>`<text x="${x}" y="${y}" text-anchor="${anchor}" fill="${color}" font-size="18" ${String(t).length>9?'textLength="108" lengthAdjust="spacingAndGlyphs"':''} font-weight="bold">${t}</text>`;
+ el('diagram').setAttribute('aria-label',(down?'下向き':'上向き')+'の勾配図');
+ el('diagram').innerHTML=`<path d="M70 ${base}V18 M10 ${base}H70" stroke="#0785ff" stroke-width="3" stroke-dasharray="9 9" stroke-linecap="round" fill="none"/><g dominant-baseline="middle" stroke="#101012" stroke-width="7" stroke-linejoin="round" paint-order="stroke">${label(70,(base+18)/2,'A','#f4f4f5')}${label(40,base,'B','#f4f4f5')}</g><path d="M70 ${base}H270" stroke="#f97316" stroke-width="4" fill="none"/>${label(170,base-sign*27,fmt(values.c)||'水平寸法','#fb923c')}<path d="M270 ${base}V${tip}" stroke="#22c55e" stroke-width="4" fill="none"/>${label(282,(base+tip)/2+6,valid?(fmt(values.a)||'—'):'勾配幅','#4ade80','start')}<path d="M70 ${base}L270 ${tip}" stroke="#3b82f6" stroke-width="4" fill="none"/>${label(170,(base+tip)/2+(down?36+0.27*h:-(16+0.27*h)),valid?(fmt(values.b)||'—'):'斜辺','#60a5fa')}`;
+ renderFullDiagram();
+ saveState();
+}
+for(const [rowIndex,keys] of [['固定','AC','00','0','⏎','C'],['1','2','3','4','5','6','7','8','9']].entries()){
+ const row=document.createElement('div');row.className='key-row'+(rowIndex===1?' digits':'');
+ for(const k of keys){
+ const b=document.createElement('button');b.type='button';b.dataset.key=k;b.textContent=k;if(k==='固定'){b.id='fixedModeKey';b.title='角：角度固定／長：水平寸法固定'}b.className=k==='⏎'?'enter':['AC','C'].includes(k)?'clear':'';if(!/^\d+$/.test(k))b.classList.add('key-label');if(k==='⏎')b.setAttribute('aria-label','次の入力欄へ');b.addEventListener('click',()=>key(String(k)));row.append(b);
+ }
+ document.querySelector('.keypad').append(row);
+}
+document.querySelectorAll('[data-field]').forEach(n=>{
+ const field=n.dataset.field,input=n.querySelector('input');
+ if(field==='a'||field==='b'){
+  n.setAttribute('role','button');n.setAttribute('tabindex','0');n.setAttribute('aria-haspopup','dialog');
+  n.setAttribute('aria-label',field==='a'?'勾配幅を変更':'斜辺を変更');input.setAttribute('tabindex','-1');
+  n.addEventListener('pointerdown',e=>e.preventDefault());
+  n.addEventListener('click',()=>openNumberEditor(field));
+  n.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();openNumberEditor(field)}});
+ }else{n.addEventListener('click',()=>select(field));input.addEventListener('focus',()=>select(field))}
+});
+// Custom keypad: select the field without focusing the native text input.
+el('c').addEventListener('pointerdown',e=>{e.preventDefault();select('c')});
+el('direction').addEventListener('click',()=>{down=!down;render()});
+document.addEventListener('keydown',e=>{if(el('fullView').open||el('numberEditor').open)return;if(e.ctrlKey||e.metaKey||e.altKey)return;if(e.target.tagName==='BUTTON'&&['Enter',' '].includes(e.key))return;let k=e.key==='Enter'?'⏎':e.key==='Delete'?'C':e.key==='Escape'?'AC':e.key;if(/^[0-9.]$/.test(k)||['⏎','C','AC','Backspace'].includes(k)){e.preventDefault();key(k)}});
 
-                if (key === 'C') {
-                    const setter = {
-                        name: setCurrentProductName,
-                        stdLength: setStdLength,
-                        overlap: setOverlap,
-                        totalDim: setTotalDim,
-                        addInput: setAddInput,
-                        y: setY,
-                        x: setX,
-                        c: setC
-                    }[activeField];
-                    if (setter) setter('');
-                    setIsNewEntry(true);
-                    return;
-                }
+let editorField='c',editorDraft='',editorFresh=true;
+function openNumberEditor(field){
+ editorField=field;editorFresh=true;
+ const v=field==='A'||field==='B'?el(field==='A'?'angleA':'angleB').textContent.replace('°',''):values[field];
+ editorDraft=v&&v!=='—'?String(Number(Number(v).toFixed(6))):'';
+ el('editorTitle').textContent=({c:'水平寸法（㎜）',a:'勾配幅（㎜）',b:'斜辺（㎜）',A:'Aの角度（°）',B:'Bの角度（°）'})[field];
+ el('editorValue').textContent=editorDraft||'—';el('editorError').textContent='';
+ el('editorMode').textContent=field==='A'||field==='B'?'水平寸法固定':fixedMode==='angle'?'角度固定':'水平寸法固定';
+ el('numberEditor').showModal();
+ el('editorTitle').focus({preventScroll:true});
+}
+function editorKey(k){
+ if(k==='C'){editorDraft='';editorFresh=false}
+ else if(k==='⌫'){editorDraft=editorDraft.slice(0,-1);editorFresh=false}
+ else{
+  let next=editorFresh?'':editorDraft;if(k==='.'&&next.includes('.'))return;
+  next+=k;if(next.startsWith('.'))next='0'+next;if(next.length>12)return;
+  editorDraft=next;editorFresh=false;
+ }
+ el('editorValue').textContent=editorDraft||'—';el('editorError').textContent='';
+}
+function applyNumberEditor(){
+ if(editorFresh){el('numberEditor').close();return}
+ if(!/^\d+(?:\.\d*)?$/.test(editorDraft)){el('editorError').textContent='数値を入力してください。';return}
+ let n=Number(editorDraft),field=editorField;
+ if(field==='A'||field==='B'){
+  n=field==='A'?(down?n-90:90-n):(down?n-180:180-n);field='x';
+  if(n<0||n>=90){el('editorError').textContent='この向きで成立する角度を入力してください。';return}
+ }
+ const before={...values},beforeError=error;
+ values[field]=String(n);calculate(field);
+ if(error){const message=error;values=before;error=beforeError;el('editorError').textContent=message;return}
+ active=field;fresh=true;editBase=null;render();el('numberEditor').close();
+}
+for(const k of ['7','8','9','4','5','6','1','2','3','0','00','C']){
+ const b=document.createElement('button');b.type='button';b.textContent=k;b.addEventListener('click',()=>editorKey(k));el('editorKeys').append(b);
+}
+el('fullDiagram').addEventListener('click',e=>{const target=e.target.closest('[data-edit]');if(target)openNumberEditor(target.dataset.edit)});
+el('fullDiagram').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){const target=e.target.closest('[data-edit]');if(target){e.preventDefault();openNumberEditor(target.dataset.edit)}}});
+for(const field of ['A','B']){
+ const button=el('editAngle'+field);
+ button.addEventListener('click',()=>openNumberEditor(field));
+ button.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();openNumberEditor(field)}});
+}
+el('editorCancel').addEventListener('click',()=>el('numberEditor').close());
+el('editorApply').addEventListener('click',applyNumberEditor);
+el('numberEditor').addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Escape')return;if(e.target.tagName==='BUTTON'&&(e.key==='Enter'||e.key===' '))return;if(/^[0-9.]$/.test(e.key)){e.preventDefault();editorKey(e.key)}else if(e.key==='Backspace'){e.preventDefault();editorKey('⌫')}else if(e.key==='Enter'){e.preventDefault();applyNumberEditor()}});
+let savedScroll=0,previousBodyStyle='';
+function openDiagram(){
+ if(el('fullView').open)return;
+ savedScroll=window.scrollY;previousBodyStyle=document.body.style.cssText;
+ renderFullDiagram();el('fullView').showModal();
+ document.body.style.position='fixed';document.body.style.top=-savedScroll+'px';document.body.style.width='100%';
+ el('closeDiagram').focus({preventScroll:true});
+}
+el('openDiagram').addEventListener('click',openDiagram);
+el('openDiagram').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();openDiagram()}});
+el('closeDiagram').addEventListener('click',()=>el('fullView').close());
+el('fullView').addEventListener('close',()=>{document.body.style.cssText=previousBodyStyle;window.scrollTo(0,savedScroll);el('openDiagram').focus({preventScroll:true})});
+el('fullDirection').addEventListener('click',()=>{down=!down;render()});
 
-                if (key === '+/-') {
-                    if (activeField === 'name') return;
-                    const setter = {
-                        stdLength: setStdLength,
-                        overlap: setOverlap,
-                        totalDim: setTotalDim,
-                        addInput: setAddInput,
-                        y: updateFromY,
-                        x: updateFromX,
-                        c: updateFromC
-                    }[activeField];
-                    if (setter) {
-                        if (['y', 'x', 'c'].includes(activeField)) {
-                           const currentVal = activeField === 'y' ? y : activeField === 'x' ? x : c;
-                           const n = parseFloat(currentVal);
-                           if (!isNaN(n)) setter((n * -1).toString());
-                        } else {
-                           setter(prev => {
-                               const n = toNum(prev);
-                               return n === 0 ? prev : (n * -1).toString();
-                           });
-                        }
-                    }
-                    return;
-                }
+// Manual history stores the existing calculation state without changing formulas.
+const HISTORY_KEY=STORAGE_KEY+':history:v1';
+let calculationHistory=[],editingHistoryId=null;
+function validHistoryEntry(item){
+ return item&&typeof item.id==='string'&&typeof item.savedAt==='string'&&Number.isFinite(Date.parse(item.savedAt))&&typeof item.down==='boolean'&&['angle','length'].includes(item.fixedMode)&&item.values&&fields.every(k=>typeof item.values[k]==='string'&&item.values[k].length<=100&&item.values[k]!==''&&Number.isFinite(Number(item.values[k]))&&Number(item.values[k])>=0)&&Number(item.values.c)>0;
+}
+function renderHistory(){
+ const list=el('historyList');list.replaceChildren();el('deleteAllHistory').disabled=!calculationHistory.length;
+ el('saveCalculation').textContent=editingHistoryId?'保存（履歴を更新）':'保存';
+ if(!calculationHistory.length){const note=document.createElement('p');note.className='history-empty';note.textContent='保存した計算がここに表示されます。';list.append(note);return;}
+ for(const item of calculationHistory){
+  const b=document.createElement('button');b.type='button';b.className='history-item'+(item.id===editingHistoryId?' selected':'');
+  b.textContent=(item.down?'下向き':'上向き')+'・'+(item.fixedMode==='angle'?'角度固定':'水平寸法固定')+'　勾配 '+fmt(item.values.y)+' ／ 角度 '+fmt(item.values.x,1)+'°\n水平 '+fmt(item.values.c)+'㎜ ／ 勾配幅 '+fmt(item.values.a)+'㎜ ／ 斜辺 '+fmt(item.values.b)+'㎜';
+  b.addEventListener('click',()=>{
+   values={...item.values};down=item.down;fixedMode=item.fixedMode;active='y';fresh=true;editBase=null;error='';editingHistoryId=item.id;
+   render();renderHistory();el('saveStatus').textContent='履歴を読み込みました。変更後に保存すると、この履歴を更新します。';
+  });
+  const row=document.createElement('div');row.className='history-row';
+  const remove=document.createElement('button');remove.type='button';remove.className='history-delete';remove.textContent='×';remove.setAttribute('aria-label','この履歴を削除');
+  remove.addEventListener('click',()=>deleteHistory(item.id));row.append(b,remove);list.append(row);
+ }
+}
+function restoreHistory(){
+ try{const stored=JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]');if(Array.isArray(stored))calculationHistory=stored.filter(validHistoryEntry);}
+ catch(e){el('saveStatus').textContent='履歴を読み込めませんでした。';}
+ renderHistory();
+}
+el('saveCalculation').addEventListener('click',()=>{
+ if(error||!fields.every(k=>values[k]!==''&&Number.isFinite(Number(values[k])))||num('c')<=0){el('saveStatus').textContent='勾配または角度と水平寸法を入力し、計算結果を確認してから保存してください。';return;}
+ const now=new Date().toISOString();
+ const item={id:editingHistoryId||(globalThis.crypto?.randomUUID?.()||Date.now().toString(36)+'-'+Math.random().toString(36).slice(2)),savedAt:now,values:{...values},down,fixedMode};
+ const next=[item,...calculationHistory.filter(x=>x.id!==item.id)];
+ try{localStorage.setItem(HISTORY_KEY,JSON.stringify(next));}
+ catch(e){el('saveStatus').textContent='保存できませんでした。端末の保存容量やブラウザの設定を確認してください。';return;}
+ calculationHistory=next;editingHistoryId=null;renderHistory();el('saveStatus').textContent='保存しました。';
+});
+function deleteHistory(id){
+ const next=id===null?[]:calculationHistory.filter(item=>item.id!==id);
+ try{localStorage.setItem(HISTORY_KEY,JSON.stringify(next));}
+ catch(e){el('saveStatus').textContent='履歴を削除できませんでした。';return;}
+ calculationHistory=next;if(id===null||editingHistoryId===id)editingHistoryId=null;
+ renderHistory();el('saveStatus').textContent=id===null?'履歴をすべて削除しました。':'履歴を削除しました。';
+}
+el('deleteAllHistory').addEventListener('click',()=>{if(calculationHistory.length&&confirm('保存履歴をすべて削除しますか？'))deleteHistory(null);});
+// AC starts a new calculation while retaining saved history.
+document.querySelector('[data-key="AC"]').addEventListener('click',()=>{editingHistoryId=null;el('saveStatus').textContent='';renderHistory();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!el('fullView').open&&!el('numberEditor').open){editingHistoryId=null;el('saveStatus').textContent='';renderHistory();}});
+restoreHistory();
 
-                if (key === '保存') {
-                    saveToHistoryManually();
-                    return;
-                }
-
-                if (key === '⏎') {
-                    if (activeTab === 'material') {
-                        if (activeField === 'addInput') {
-                            executeAddition();
-                        } else {
-                            const fields = ['name', 'stdLength', 'overlap', 'totalDim', 'addInput'];
-                            const nextIdx = (fields.indexOf(activeField) + 1) % fields.length;
-                            setActiveField(fields[nextIdx]);
-                        }
-                    } else {
-                        const fields = ['y', 'x', 'c'];
-                        const currentIdx = fields.indexOf(activeField);
-                        if (currentIdx !== -1 && currentIdx < fields.length - 1) {
-                            setActiveField(fields[currentIdx + 1]);
-                        }
-                    }
-                    setIsNewEntry(true);
-                    return;
-                }
-
-                const setter = {
-                    name: setCurrentProductName,
-                    stdLength: setStdLength,
-                    overlap: setOverlap,
-                    totalDim: setTotalDim,
-                    addInput: setAddInput
-                }[activeField];
-
-                if (setter && activeTab === 'material') {
-                    setter(prev => {
-                        const s = prev.toString();
-                        if (key === '00' && (isNewEntry || s === '')) return '';
-                        const nextVal = isNewEntry ? key.toString() : s + key;
-                        setIsNewEntry(false);
-                        return nextVal;
-                    });
-                } else if (activeTab === 'slope') {
-                    let currentStr = (activeField === 'y' ? y : activeField === 'x' ? x : c).toString();
-                    if (key === '00' && (isNewEntry || currentStr === '')) return;
-                    if (key === '.' && !isNewEntry && currentStr.includes('.')) return;
-                    let nextStr = isNewEntry ? (key === '.' ? '0.' : key.toString()) : currentStr + key;
-                    setIsNewEntry(false);
-                    if (activeField === 'y') updateFromY(nextStr);
-                    if (activeField === 'x') updateFromX(nextStr);
-                    if (activeField === 'c') updateFromC(nextStr);
-                }
-            };
-
-            const saveHistoryTotal = () => {
-                if (history.length === 0) return;
-                const pieces = history.reduce((acc, cur) => acc + (cur.pieces || 0), 0);
-                const totalDistance = history.reduce((acc, cur) => acc + toNum(cur.total), 0);
-                const totalRemainder = history.reduce((acc, cur) => acc + (toNum(cur.remainder) || 0), 0); 
-                const newTallies = [{
-                    id: Date.now().toString(),
-                    name: currentProductName,
-                    pieces,
-                    totalDistance,
-                    totalRemainder,
-                    createdAt: Date.now()
-                }, ...savedTallies];
-                setSavedTallies(newTallies);
-                localStorage.setItem('trim_calc_tallies_v15', JSON.stringify(newTallies));
-                setIsPendingClear(true);
-                setCurrentProductName('');
-            };
-
-            const confirmClearHistory = () => {
-                setHistory([]);
-                localStorage.removeItem('trim_calc_history_v15');
-                setIsClearModalOpen(false);
-                setIsPendingClear(false);
-            };
-
-            const updateFromY = (v) => {
-                const cl = unformat(v); setY(cl); const n = parseFloat(cl);
-                if (!isNaN(n)) {
-                    setX(((Math.atan(n / 100) * 180) / Math.PI).toFixed(2));
-                    if (toNum(c) !== 0) {
-                        setA(Math.round((n / 100) * toNum(c)).toString());
-                        setB(Math.round(Math.sqrt(Math.pow((n / 100) * toNum(c), 2) + Math.pow(toNum(c), 2))).toString());
-                    }
-                } else { setX(''); setA(''); setB(''); }
-            };
-            const updateFromX = (v) => {
-                const cl = unformat(v); setX(cl); const n = parseFloat(cl);
-                if (!isNaN(n)) {
-                    const g = 100 * Math.tan((n * Math.PI) / 180);
-                    setY(g.toFixed(2));
-                    if (toNum(c) !== 0) {
-                        setA(Math.round((g / 100) * toNum(c)).toString());
-                        setB(Math.round(Math.sqrt(Math.pow((g / 100) * toNum(c), 2) + Math.pow(toNum(c), 2))).toString());
-                    }
-                } else { setY(''); setA(''); setB(''); }
-            };
-            const updateFromC = (v) => {
-                const cl = unformat(v); setC(cl); const nC = parseFloat(cl); const nY = toNum(y);
-                if (nC !== 0 && !isNaN(nY)) {
-                    setA(Math.round((nY / 100) * nC).toString());
-                    setB(Math.round(Math.sqrt(Math.pow((nY / 100) * nC, 2) + Math.pow(nC, 2))).toString());
-                }
-            };
-            const updateFromA = (v) => {
-                const cl = unformat(v); setA(cl); const nA = parseFloat(cl); const nC = toNum(c);
-                if (!isNaN(nA) && nC !== 0) {
-                    setB(Math.round(Math.sqrt(Math.pow(nA, 2) + Math.pow(nC, 2))).toString());
-                    const g = (nA / nC) * 100;
-                    setY(g.toFixed(2)); setX(((Math.atan(g / 100) * 180) / Math.PI).toFixed(2));
-                }
-            };
-            const updateFromB = (v) => {
-                const cl = unformat(v); setB(cl); const nB = parseFloat(cl); const nA = toNum(a);
-                if (!isNaN(nB) && !isNaN(nA) && nB >= nA && nB !== 0) {
-                    const nC = Math.sqrt(Math.pow(nB, 2) - Math.pow(nA, 2)); setC(Math.round(nC).toString());
-                    if (nC !== 0) {
-                        const g = (nA / nC) * 100;
-                        setY(g.toFixed(2)); setX(((Math.atan(g / 100) * 180) / Math.PI).toFixed(2));
-                    }
-                }
-            };
-
-            const isValidSlope = (y !== '' || x !== '') && (c !== '' || a !== '' || b !== '');
-
-            useEffect(() => {
-                const handleGlobalClick = () => setOpenDropdown(null);
-                window.addEventListener('click', handleGlobalClick);
-                return () => window.removeEventListener('click', handleGlobalClick);
-            }, []);
-
-            return (
-                <div className="max-w-md mx-auto p-4 space-y-4">
-                    {isClearModalOpen && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
-                            <div className="bg-zinc-900 border border-zinc-700 rounded-3xl p-6 w-full max-sm shadow-2xl animate-fade-in text-center">
-                                <h3 className="text-xl font-bold text-white mb-2">履歴の全削除</h3>
-                                <p className="text-[14px] text-zinc-400 mb-6">保存履歴をすべて削除します。<br/>本当によろしいですか？</p>
-                                <div className="flex gap-3">
-                                    <button onClick={() => setIsClearModalOpen(false)} className="flex-1 py-3 rounded-xl font-bold btn-3d btn-3d-zinc text-white">キャンセル</button>
-                                    <button onClick={confirmClearHistory} className="flex-1 py-3 rounded-xl font-bold btn-3d btn-3d-red text-white">削除する</button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    <header className="flex flex-col gap-2 border-b border-zinc-700 pb-2 text-left">
-                        <div className="flex items-baseline justify-between px-1">
-                            <h1 className="text-[17px] font-bold text-white leading-none">役物材料 計算</h1>
-                            <p className="text-[14px] text-zinc-500 font-bold uppercase tracking-tighter">KYOWA ROOF</p>
-                        </div>
-                        <nav className="flex bg-zinc-900 rounded-2xl p-1 shadow-inner">
-                            <button onClick={() => setActiveTab('material')} className={`flex-1 py-1 rounded-xl text-[14px] font-black transition-all btn-3d ${activeTab === 'material' ? 'btn-3d-tab-active shadow-lg' : 'text-zinc-500'}`}>材料</button>
-                            <button onClick={() => setActiveTab('slope')} className={`flex-1 py-1 rounded-xl text-[14px] font-black transition-all btn-3d ${activeTab === 'slope' ? 'btn-3d-tab-active shadow-lg' : 'text-zinc-500'}`}>勾配</button>
-                        </nav>
-                    </header>
-
-                    {activeTab === 'material' ? (
-                        <div className="flex flex-col animate-fade-in">
-                            <div 
-                                className={`bg-zinc-900 rounded-2xl overflow-hidden border border-[#c0c0c0] shadow-xl mb-3 relative px-3 h-12 flex flex-col justify-center transition-all ${activeField === 'name' ? 'bg-zinc-800 ring-2 ring-inset ring-orange-500 z-10' : ''}`}
-                                onClick={() => setActiveField('name')}
-                            >
-                                <span className="label-ios">品名</span>
-                                <input type="text" value={currentProductName} onChange={(e) => setCurrentProductName(e.target.value)} onFocus={handleFocus} className="w-full h-full bg-transparent text-center text-[18px] text-zinc-200 font-bold outline-none" placeholder="名前を入力" />
-                            </div>
-
-                            <div className="bg-zinc-900 rounded-2xl overflow-hidden border-2 border-zinc-800 shadow-xl space-y-0">
-                                <div className="flex border-b border-zinc-800">
-                                    <div className={`relative flex-1 h-12 border-r border-zinc-800 flex flex-col justify-center transition-all ${activeField === 'stdLength' ? 'bg-zinc-800 ring-2 ring-inset ring-orange-500 z-10' : ''}`} onClick={() => setActiveField('stdLength')}>
-                                        <input type="text" inputMode="none" value={format(stdLength)} onFocus={handleFocus} className="placeholder-silver w-full h-full bg-transparent text-center text-[20px] text-white font-bold outline-none font-mono" placeholder="材料の長さ" />
-                                        <button onClick={(e) => { e.stopPropagation(); setOpenDropdown(openDropdown === 'length' ? null : 'length'); }} className={`absolute right-1 top-0 bottom-0 w-8 flex items-center justify-center text-zinc-500 ${openDropdown === 'length' ? 'rotate-180 text-orange-500' : ''}`}>
-                                            <Icon name="chevron" size={20} />
-                                        </button>
-                                        {openDropdown === 'length' && (
-                                            <div className="absolute top-full left-0 right-0 z-30 mt-1 bg-zinc-800 border border-zinc-700 rounded-xl shadow-2xl overflow-hidden animate-fade-in">
-                                                {[2000, 2500, 3000, 4000].map(val => (
-                                                    <button key={val} onClick={() => { setStdLength(val.toString()); setOpenDropdown(null); }} className="w-full py-2.5 text-lg font-black text-zinc-100 hover:bg-zinc-700 border-b border-zinc-700/50 last:border-none">
-                                                        {val.toLocaleString()}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div className={`relative flex-1 h-12 flex flex-col justify-center transition-all ${activeField === 'overlap' ? 'bg-zinc-800 ring-2 ring-inset ring-orange-500 z-10' : ''}`} onClick={() => setActiveField('overlap')}>
-                                        <input type="text" inputMode="none" value={format(overlap)} onFocus={handleFocus} className="placeholder-silver w-full h-full bg-transparent text-center text-[20px] text-white font-bold outline-none font-mono" placeholder="ジョイント" />
-                                        <button onClick={(e) => { e.stopPropagation(); setOpenDropdown(openDropdown === 'overlap' ? null : 'overlap'); }} className={`absolute right-1 top-0 bottom-0 w-8 flex items-center justify-center text-zinc-500 ${openDropdown === 'overlap' ? 'rotate-180 text-orange-500' : ''}`}>
-                                            <Icon name="chevron" size={20} />
-                                        </button>
-                                        {openDropdown === 'overlap' && (
-                                            <div className="absolute top-full left-0 right-0 z-30 mt-1 bg-zinc-800 border border-zinc-700 rounded-xl shadow-2xl overflow-hidden animate-fade-in">
-                                                {[30, 50, 70, 100].map(val => (
-                                                    <button key={val} onClick={() => { setOverlap(val.toString()); setOpenDropdown(null); }} className="w-full py-2.5 text-lg font-black text-zinc-100 hover:bg-zinc-700 border-b border-zinc-700/50 last:border-none">
-                                                        {val}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-
-                                <div className={`relative px-3 h-[3.5rem] border-b border-zinc-800 flex flex-col justify-center transition-all ${activeField === 'totalDim' ? 'bg-zinc-800 ring-2 ring-inset ring-orange-500 z-10' : ''}`} onClick={() => setActiveField('totalDim')}>
-                                    <span className="label-ios">全幅(W)</span>
-                                    <input type="text" inputMode="none" value={format(totalDim)} onFocus={handleFocus} className="w-full h-full bg-transparent text-center text-[26px] text-white font-black outline-none font-mono" placeholder="取り付け全長" />
-                                </div>
-
-                                <div className="flex border-b border-zinc-800">
-                                    <div className={`relative flex-1 px-3 h-[3.2rem] flex flex-col justify-center transition-all ${activeField === 'addInput' ? 'bg-zinc-800 ring-2 ring-inset ring-orange-500 z-10' : ''}`} onClick={() => setActiveField('addInput')}>
-                                        <span className="label-ios">+加算</span>
-                                        <input ref={addInputRef} type="text" inputMode="none" value={format(addInput)} onFocus={handleFocus} className="w-full h-full bg-transparent text-center text-[22px] text-[#c0c0c0] font-bold outline-none font-mono" placeholder="数値入力" />
-                                    </div>
-                                    <button onClick={() => handleKeypad('⏎')} className="w-[25%] flex items-center justify-center text-[21px] font-bold border-l border-zinc-800 btn-3d-silver-ios text-zinc-800 h-[3.2rem]">
-                                        {activeField === 'addInput' ? <span className="text-[18px]">加算</span> : <Icon name="enter" size={24} />}
-                                    </button>
-                                </div>
-
-                                <div className="grid grid-cols-4 bg-[#27272a]">
-                                    {[7, 8, 9, 'C', 4, 5, 6, 'AC', 1, 2, 3, '保存', 0, '00', '+/-'].map((key, i) => {
-                                        const isFunction = key === 'C' || key === 'AC';
-                                        const isSave = key === '保存';
-                                        let bgClass = 'bg-[#18181b]';
-                                        if (isFunction) bgClass = 'bg-[#3f3f46]';
-                                        if (isSave) bgClass = 'btn-3d-orange-ios';
-                                        return (
-                                            <button key={i} onClick={(e) => { e.preventDefault(); handleKeypad(key); }} className={`flex items-center justify-center text-[21px] font-bold h-[3.2rem] border-r border-b border-zinc-700 active:opacity-60 text-white ${bgClass} ${isSave ? 'row-span-2 h-auto' : ''}`}>{isSave ? <span className="text-[16px]">保存</span> : key}</button>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-
-                            <section className="grid grid-cols-2 gap-2 mt-4 text-left">
-                                <div className="bg-zinc-900 py-1 px-3 rounded-2xl border-2 border-green-500 flex flex-col items-start shadow-lg">
-                                    <span className="text-[13px] font-bold text-zinc-300 uppercase block mt-1 leading-none">本数</span>
-                                    <div className="flex items-baseline gap-1 mt-0.5">
-                                        <span className="text-[28px] font-mono font-black text-green-500">{materialResult.pieces}</span>
-                                        <span className="text-[14px] font-bold text-zinc-400">本</span>
-                                    </div>
-                                </div>
-                                <div className="bg-zinc-900 py-1 px-3 rounded-2xl border-2 border-blue-500 flex flex-col items-start shadow-lg">
-                                    <span className="text-[13px] font-bold text-zinc-300 uppercase block mt-1 leading-none">端材寸法</span>
-                                    <div className="flex items-baseline gap-1 mt-0.5">
-                                        <span className="text-[28px] font-mono font-black text-blue-500">{format(materialResult.remainder)}</span>
-                                        <span className="text-[14px] font-bold text-zinc-400">㎜</span>
-                                    </div>
-                                </div>
-                            </section>
-
-                            <section className="space-y-2 mt-4 text-left">
-                                <div className="flex items-center justify-between ml-1">
-                                    <h3 className="text-[14px] font-bold text-zinc-300 uppercase">保存履歴</h3>
-                                    <div className="flex items-center gap-1.5 shrink-0">
-                                        <button onClick={saveHistoryTotal} className="h-8 px-3 rounded-lg text-[13px] font-black flex items-center gap-1 btn-3d-orange-ios text-white whitespace-nowrap transition-all"><Icon name="save" size={16} />集計保存</button>
-                                        <button onClick={() => setIsClearModalOpen(true)} className="h-8 w-10 flex items-center justify-center rounded-lg btn-3d btn-3d-zinc text-zinc-300 active:text-red-500"><Icon name="trash" size={18} /></button>
-                                    </div>
-                                </div>
-                                <div className="bg-zinc-900 py-2 px-3 rounded-2xl border-2 border-orange-500 shadow-md">
-                                    <div className="flex flex-col gap-1 text-left">
-                                        <div className="flex items-baseline justify-between px-1">
-                                            <span className="text-zinc-400 text-[14px] font-bold uppercase tracking-tighter">総距離:</span>
-                                            <span className="text-zinc-200 text-[14px] font-bold">{format(history.reduce((a,c)=>a+toNum(c.total),0))} mm</span>
-                                        </div>
-                                        <div className="flex items-center justify-between px-1">
-                                            <div className="flex items-baseline gap-2">
-                                                <span className="text-zinc-400 text-[14px] font-bold uppercase tracking-tighter">総本数:</span>
-                                                <div className="flex items-baseline gap-1">
-                                                    <span className="text-xl font-mono font-black text-green-500 leading-none">{history.reduce((a,c)=>a+(c.pieces||0),0)}</span>
-                                                    <span className="text-xs font-bold text-zinc-300">本</span>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-baseline gap-1.5">
-                                                <span className="text-zinc-400 text-[14px] font-bold uppercase tracking-tighter">総端材:</span>
-                                                <span className="text-blue-400 text-base font-mono font-bold">{format(history.reduce((a,c)=>a+(toNum(c.remainder)||0),0))} mm</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="space-y-1.5">
-                                    {history.map(item => (
-                                        <div key={item.id} className="bg-zinc-900 border border-zinc-800 rounded-xl flex items-center shadow-sm p-2">
-                                            <div className="flex-1 flex items-baseline gap-3">
-                                                <span className="text-zinc-200 font-mono text-sm">{format(item.total)} mm</span>
-                                                <span className="text-green-500 font-black text-sm">{item.pieces}本</span>
-                                                <span className="text-blue-500 font-black text-sm">{format(item.remainder)} mm</span>
-                                            </div>
-                                            <button onClick={() => deleteHistoryItem(item.id)} className="w-12 shrink-0 flex items-center justify-center text-zinc-600 active:text-red-500"><Icon name="trash" size={16} /></button>
-                                        </div>
-                                    ))}
-                                </div>
-                            </section>
-
-                            <section className="space-y-2 pt-3 border-t border-zinc-800 text-left">
-                                <h3 className="text-[14px] font-black text-orange-500 ml-1 uppercase block">種類別 集計</h3>
-                                <div className="space-y-2">
-                                    {savedTallies.map(t => (
-                                        /* 集計アイテムの枠線を border-2 から border (1px) に修正 */
-                                        <div key={t.id} className="bg-zinc-900 rounded-xl border border-orange-500 flex items-stretch shadow-md animate-fade-in overflow-hidden">
-                                            <div className="flex-1 py-2 px-3 flex flex-col gap-1.5 text-left">
-                                                <div className="flex flex-col gap-1 text-left">
-                                                    <div className="flex items-baseline justify-between px-1">
-                                                        <span className="text-zinc-400 text-xs font-bold uppercase tracking-tighter">距離:</span>
-                                                        <span className="text-zinc-200 text-xs font-bold">{format(t.totalDistance)} mm</span>
-                                                    </div>
-                                                    <div className="flex items-center justify-between px-1">
-                                                        <div className="flex items-baseline gap-2">
-                                                            <span className="text-zinc-400 text-xs font-bold uppercase tracking-tighter">本数:</span>
-                                                            <div className="flex items-baseline gap-1">
-                                                                <span className="text-xl font-mono font-black text-green-500 leading-none">{t.pieces}</span>
-                                                                <span className="text-xs font-bold text-zinc-300">本</span>
-                                                            </div>
-                                                        </div>
-                                                        <div className="flex items-baseline gap-1.5">
-                                                            <span className="text-zinc-400 text-xs font-bold uppercase tracking-tighter">端材:</span>
-                                                            <span className="text-blue-400 text-base font-mono font-bold">{format(t.totalRemainder || 0)} mm</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <input type="text" value={t.name} onFocus={handleFocus} onChange={(e) => updateTallyName(t.id, e.target.value)} className="w-full bg-zinc-950 border border-zinc-800 rounded-lg py-1.5 px-2 text-sm text-zinc-200 outline-none font-bold focus:border-orange-500 shadow-inner" placeholder="種類名を入力" />
-                                            </div>
-                                            <button onClick={() => {
-                                                const updated = savedTallies.filter(st => st.id !== t.id);
-                                                setSavedTallies(updated);
-                                                localStorage.setItem('trim_calc_tallies_v15', JSON.stringify(updated));
-                                            }} className="w-12 shrink-0 bg-zinc-900/50 hover:bg-zinc-800 text-zinc-300 active:text-red-500 flex items-center justify-center border-l border-zinc-800"><Icon name="trash" size={20} /></button>
-                                        </div>
-                                    ))}
-                                </div>
-                            </section>
-                        </div>
-                    ) : (
-                        /* 勾配計算画面 */
-                        <div className="flex flex-col gap-3 animate-fade-in text-left">
-                            <div className="bg-zinc-900 rounded-2xl overflow-hidden border-2 border-zinc-800 shadow-xl text-left">
-                                <div className="flex border-b border-zinc-800">
-                                    <div className={`relative flex-1 h-12 border-r border-zinc-800 flex flex-col justify-center transition-all ${activeField === 'y' ? 'bg-zinc-800 ring-2 ring-inset ring-orange-500 z-10' : ''}`} onClick={() => setActiveField('y')}>
-                                        <input type="text" inputMode="none" value={y} onFocus={handleFocus} className="placeholder-silver w-full h-full bg-transparent text-center text-[20px] text-white font-bold outline-none font-mono" placeholder="勾配(100→↕︎)" />
-                                    </div>
-                                    <div className={`relative flex-1 h-12 flex flex-col justify-center transition-all ${activeField === 'x' ? 'bg-zinc-800 ring-2 ring-inset ring-orange-500 z-10' : ''}`} onClick={() => setActiveField('x')}>
-                                        <input type="text" inputMode="none" value={x} onFocus={handleFocus} className="placeholder-silver w-full h-full bg-transparent text-center text-[20px] text-white font-bold outline-none font-mono" placeholder="角度" />
-                                    </div>
-                                </div>
-                                <div className={`relative px-3 h-[3.5rem] border-b border-zinc-800 flex flex-col justify-center transition-all ${activeField === 'c' ? 'bg-zinc-800 ring-2 ring-inset ring-orange-500 z-10' : ''}`} onClick={() => setActiveField('c')}>
-                                    <span className="label-ios">水平寸法</span>
-                                    <input type="text" inputMode="none" value={format(c)} onFocus={handleFocus} className="w-full h-full bg-transparent text-center text-[26px] text-white font-black outline-none font-mono pt-1" placeholder="水平の距離or長さ" />
-                                    <span className="absolute right-3 top-1/2 mt-1 text-zinc-400 font-black text-[14px]">㎜</span>
-                                </div>
-                                <div className="grid grid-cols-4 bg-[#27272a]">
-                                    {[7, 8, 9, 'C', 4, 5, 6, 'AC', 1, 2, 3, '⏎', 0, '00', '.'].map((key, i) => {
-                                        const isEnter = key === '⏎';
-                                        const isGray = key === 'C' || key === 'AC';
-                                        const bgClass = isEnter ? 'btn-3d-silver-ios text-zinc-800' : isGray ? 'bg-[#3f3f46] text-white' : 'bg-[#18181b] text-white';
-                                        return (
-                                            <button key={i} onClick={(e) => { e.preventDefault(); handleKeypad(key); }} className={`flex items-center justify-center text-[21px] font-bold h-[3.2rem] border-r border-b border-zinc-700 active:opacity-60 ${bgClass} ${isEnter ? 'row-span-2 h-auto' : ''}`}>{isEnter ? <Icon name="enter" size={24} /> : key}</button>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                            <section className="grid grid-cols-2 gap-2 mt-2 text-left">
-                                <div className="bg-zinc-900 py-1 px-3 rounded-2xl border-2 border-green-500 flex flex-col items-start shadow-lg text-left">
-                                    <span className="text-[13px] font-bold text-zinc-300 uppercase block mt-1 leading-none">勾配幅</span>
-                                    <div className="flex items-baseline gap-1 mt-0.5">
-                                        <span className="text-[28px] font-mono font-black text-green-500">{format(a) || '0'}</span>
-                                        <span className="text-[14px] font-bold text-zinc-400">㎜</span>
-                                    </div>
-                                </div>
-                                <div className="bg-zinc-900 py-1 px-3 rounded-2xl border-2 border-blue-500 flex flex-col items-start shadow-lg text-left">
-                                    <span className="text-[13px] font-bold text-zinc-300 uppercase block mt-1 leading-none">斜辺</span>
-                                    <div className="flex items-baseline gap-1 mt-0.5">
-                                        <span className="text-[28px] font-mono font-black text-blue-500">{format(b) || '0'}</span>
-                                        <span className="text-[14px] font-bold text-zinc-400">㎜</span>
-                                    </div>
-                                </div>
-                            </section>
-                            <div className="bg-zinc-900 rounded-2xl p-4 border border-zinc-700 shadow-2xl overflow-hidden mt-2">
-                                <div className="flex items-center justify-between mb-2 text-left">
-                                    <div className="flex items-center gap-2 font-bold text-zinc-200 text-[14px] uppercase tracking-widest"><div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></div>プレビュー</div>
-                                    
-                                    {/* 勾配基準図 (右上の三角形) */}
-                                    <svg width="70" height="45" viewBox="0 0 80 50" className="text-[#d4d4d8] overflow-visible">
-                                        <path d="M 10 35 L 60 35 L 60 10 Z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                                        <text x="35" y="48" fontSize="14" textAnchor="middle" fill="currentColor" fontWeight="bold">100</text>
-                                        <text x="65" y="25" fontSize="14" textAnchor="start" fill="currentColor" fontWeight="bold">{y || 'y'}</text>
-                                    </svg>
-                                </div>
-                                <div className="flex justify-center h-44 bg-zinc-950/30 rounded-xl border border-zinc-800/50">
-                                    <svg viewBox="0 0 320 200" className="w-full h-full p-2 overflow-visible">
-                                        <path d="M 40 160 L 260 160" stroke="#f97316" strokeWidth="4" strokeLinecap="round" fill="none" />
-                                        <text x="150" y="185" fill="#fb923c" fontSize="18" textAnchor="middle" fontWeight="bold">{format(c) || '-'}</text>
-                                        {isValidSlope && (
-                                            <g>
-                                                <path d={`M 260 160 L 260 ${160 - Math.max(10, Math.min(100, (toNum(y)||0)))}`} stroke="#22c55e" strokeWidth="4" strokeLinecap="round" fill="none" />
-                                                <text x="272" y={160 - (Math.max(10, Math.min(100, (toNum(y)||0))) / 2)} fill="#4ade80" fontSize="18" dominantBaseline="middle" fontWeight="bold">{format(a) || '-'}</text>
-                                                <path d={`M 40 160 L 260 ${160 - Math.max(10, Math.min(100, (toNum(y)||0)))}`} stroke="#3b82f6" strokeWidth="4" strokeLinecap="round" fill="none" />
-                                                <text x="130" y={160 - (Math.max(10, Math.min(100, (toNum(y)||0))) / 2) - 15} fill="#60a5fa" fontSize="18" textAnchor="middle" fontWeight="bold" style={{ filter: 'drop-shadow(0px 0px 2px rgba(0,0,0,0.8))' }}>{format(b) || '-'}</text>
-                                            </g>
-                                        )}
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            );
-        }
-
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
-    </script>
-</body>
-</html>
+restoreState();
+render();
+</script><script>
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+ let hadController=!!navigator.serviceWorker.controller, reloading=false;
+ navigator.serviceWorker.addEventListener('controllerchange',()=>{
+  if(hadController&&!reloading){reloading=true;location.reload()}
+  hadController=true;
+ });
+ window.addEventListener('load',async()=>{
+  try {
+   const registration=await navigator.serviceWorker.register('./sw.js',{scope:'./',updateViaCache:'none'});
+   registration.update().catch(()=>{});
+   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')registration.update().catch(()=>{})});
+  } catch(error){console.warn('PWA registration failed',error)}
+ });
+}
+</script>
+</body></html>
